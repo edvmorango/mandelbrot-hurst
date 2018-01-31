@@ -38,3 +38,12 @@ mkElements :: Elems -> Elements
 mkElements els = Elements els len acc ex
   where lambda = (\e (len, acc, ex) -> (len+1, acc+e, (mkExtremes e) `mappend` ex))
         (len, acc, ex) = foldr lambda (0, 0, Inv) els
+
+
+elementsAverage :: Elements -> Average
+elementsAverage (Elements _ l a _) = a / (fromIntegral l)
+
+
+-- Must get max and min AccAvg not the Sum
+elementsAccAverage :: Elements -> Average -> AccAverage
+elementsAccAverage (Elements els _ _ _) avg = foldr (\e acc ->  (e - avg) + acc) 0 els
