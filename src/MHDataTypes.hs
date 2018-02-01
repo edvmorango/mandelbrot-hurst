@@ -53,3 +53,8 @@ elementsDiff e@(Elements els l s _) =
     _ -> 0
   where avg = elementsAverage e
         ex = snd $ foldr (\e (acc, ex) -> let a = (e - avg) + acc  in (a, rcExtremes ex a)) (0, Inv) els
+
+elementsDeviation :: Elements -> Deviation
+elementsDeviation e@(Elements es l _ _) = sqrt (ac / (fromIntegral l) )
+  where avg = elementsAverage e
+        ac = foldr (\a acc -> ( (** 2) (a - avg) + acc)) 0 es
