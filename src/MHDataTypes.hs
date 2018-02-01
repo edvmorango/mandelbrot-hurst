@@ -8,7 +8,7 @@ type LengthElems = Integer
 type Elems = [Double]
 
 type Average = Double
-type AccAverage = Double
+type DiffAcc = Double
 type TresholdRange = Double
 type Deviation = Double
 
@@ -18,7 +18,7 @@ data Elements = Elements Elems LengthElems AccElems Extremes
   deriving (Eq, Show)
 
 data HurstDataType =
-   HDT Elements Average AccAverage TresholdRange Deviation deriving (Eq, Show)
+   HDT Elements Average DiffAcc TresholdRange Deviation deriving (Eq, Show)
 
 instance Monoid Extremes where
   mempty = Inv
@@ -34,16 +34,22 @@ instance Monoid Elements where
 mkExtremes :: Double -> Extremes
 mkExtremes a = Ex a a
 
+rcExtremes :: Extremes -> Double -> Extremes
+rcExtremes e v =  (mkExtremes v) `mappend` e
+
+
 mkElements :: Elems -> Elements
 mkElements els = Elements els len acc ex
-  where lambda = (\e (len, acc, ex) -> (len+1, acc+e, (mkExtremes e) `mappend` ex))
+  where lambda = (\e (len, acc, ex) -> (len+1, acc+e, rcExtremes ex e))
         (len, acc, ex) = foldr lambda (0, 0, Inv) els
-
 
 elementsAverage :: Elements -> Average
 elementsAverage (Elements _ l a _) = a / (fromIntegral l)
 
-
--- Must get max and min AccAvg not the Sum
-elementsAccAverage :: Elements -> Average -> AccAverage
-elementsAccAverage (Elements els _ _ _) avg = foldr (\e acc ->  (e - avg) + acc) 0 els
+elementsDiff :: Elements -> DiffAcc
+elementsDiff e@(Elements els l s _) =
+  case ex of
+    (Ex a b) -> b - a
+    _ -> 0
+  where avg = elementsAverage e
+        ex = snd $ foldr (\e (acc, ex) -> let a = (e - avg) + acc  in (a, rcExtremes ex a)) (0, Inv) els
