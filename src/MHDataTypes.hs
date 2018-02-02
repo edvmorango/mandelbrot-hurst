@@ -1,4 +1,4 @@
-module MHDataTypes  where
+module MHDataTypes where
 
 type MinElem = Double
 type MaxElem = Double
@@ -9,16 +9,16 @@ type Elems = [Double]
 
 type Average = Double
 type DiffAcc = Double
+type DiffAccExtremes = Extremes
 type TresholdRange = Double
 type Deviation = Double
 
 data Extremes = Ex MinElem MaxElem | Inv deriving (Eq, Ord , Show)
 
-data Elements = Elements Elems LengthElems AccElems Extremes
+data Elements = Elements Elems LengthElems AccElems
   deriving (Eq, Show)
 
-data HurstDataType =
-   HDT Elements Average DiffAcc TresholdRange Deviation deriving (Eq, Show)
+data HurstDataType = HDT Elements TresholdRange Deviation deriving (Eq, Show)
 
 instance Monoid Extremes where
   mempty = Inv
@@ -27,9 +27,9 @@ instance Monoid Extremes where
   mappend _  (Ex a b) = Ex a b
 
 instance Monoid Elements where
-  mempty = Elements [] 0 0 Inv
-  mappend (Elements es l a e) (Elements es' l' a' e') =
-    Elements (es `mappend` es') (l + l') (a + a') (e `mappend` e')
+  mempty = Elements [] 0 0
+  mappend (Elements es l a) (Elements es' l' a') =
+    Elements (es `mappend` es') (l + l') (a + a')
 
 mkExtremes :: Double -> Extremes
 mkExtremes a = Ex a a
@@ -37,24 +37,32 @@ mkExtremes a = Ex a a
 rcExtremes :: Extremes -> Double -> Extremes
 rcExtremes e v =  (mkExtremes v) `mappend` e
 
-
 mkElements :: Elems -> Elements
-mkElements els = Elements els len acc ex
-  where lambda = (\e (len, acc, ex) -> (len+1, acc+e, rcExtremes ex e))
-        (len, acc, ex) = foldr lambda (0, 0, Inv) els
+mkElements els = Elements els len acc
+  where lambda = (\e (len, acc) -> (len+1, acc+e))
+        (len, acc) = foldr lambda (0, 0) els
 
 elementsAverage :: Elements -> Average
-elementsAverage (Elements _ l a _) = a / (fromIntegral l)
+elementsAverage (Elements _ l a ) = a / (fromIntegral l)
 
-elementsDiff :: Elements -> DiffAcc
-elementsDiff e@(Elements els l s _) =
-  case ex of
+elementsDiffAccExtremes :: Elements -> DiffAccExtremes
+elementsDiffAccExtremes e@(Elements els _ _) = ext
+  where avg = elementsAverage e
+        ext = snd $ foldr (\ce (acc, ex) -> let a = (ce - avg) + acc
+                                              in (a, rcExtremes ex a)) (0, Inv) els
+elementsTreRange :: Elements -> TresholdRange
+elementsTreRange es =
+  case (elementsDiffAccExtremes es) of
     (Ex a b) -> b - a
     _ -> 0
-  where avg = elementsAverage e
-        ex = snd $ foldr (\e (acc, ex) -> let a = (e - avg) + acc  in (a, rcExtremes ex a)) (0, Inv) els
 
 elementsDeviation :: Elements -> Deviation
-elementsDeviation e@(Elements es l _ _) = sqrt (ac / (fromIntegral l) )
+elementsDeviation e@(Elements es l _) = sqrt (ac / (fromIntegral l) )
   where avg = elementsAverage e
         ac = foldr (\a acc -> ( (** 2) (a - avg) + acc)) 0 es
+
+mkHDT :: Elements -> HurstDataType
+mkHDT es@(Elements _ _ _ ) = HDT es tr dv
+  where
+        tr = elementsTreRange es
+        dv = elementsDeviation es
