@@ -7,7 +7,7 @@ build-type:     Simple
 cabal-version:  >= 1.10
 
 library
-  exposed-modules:      Lib
+  exposed-modules:     MHLib
   ghc-options:          -Wall -fwarn-tabs
   build-depends:        base >= 4.7 && < 5
                       , random

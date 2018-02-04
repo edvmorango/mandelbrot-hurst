@@ -1,4 +1,4 @@
-module MHConstructors where
+module MHLib where
 
 import MHDataTypes
 

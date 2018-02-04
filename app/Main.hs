@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import MHLib
 
 main :: IO ()
-main = someFunc
+main = putStrLn "Here begins"
