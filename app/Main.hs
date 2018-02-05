@@ -7,10 +7,13 @@ module Main where
 import MHLib
 
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as C
+
 import Control.Applicative
 import Control.Monad (mzero)
 import Data.Csv
 import Data.Time
+import Data.Vector (Vector)
 import Data.Text (Text, foldr)
 import GHC.Generics (Generic)
 import System.Environment
@@ -44,10 +47,15 @@ instance FromField (Price) where
     (Left _) -> pure $ Price 0
     (Right n) -> pure $ Price n
 
+-- fileToList :: BL.ByteString -> [Quotation]
+fileToList f =  (map (lineDecoder) . (C.split '\n')) f
 
+
+lineDecoder l =  decode NoHeader l :: Either String (Vector Quotation)
 
 main :: IO ()
 main = do
   args <- getArgs
   file <- BL.readFile (head args)
-  putStrLn $ show file
+  putStrLn $ show (fileToList file)
+  -- putStrLn "fuck this"

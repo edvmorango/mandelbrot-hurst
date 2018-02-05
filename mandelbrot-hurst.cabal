@@ -12,6 +12,7 @@ library
   build-depends:        base >= 4.7 && < 5
                       , bytestring
                       , time
+                      , vector
                       , text
                       , cassava
                       , random
@@ -30,6 +31,7 @@ executable mh
                      , text
                      , bytestring
                      , time
+                     , vector
                      , random
                      , mandelbrot-hurst
 
@@ -42,6 +44,7 @@ test-suite tests
                      , bytestring
                      , text
                      , time
+                     , vector
                      , cassava
                      , QuickCheck
                      , hspec
