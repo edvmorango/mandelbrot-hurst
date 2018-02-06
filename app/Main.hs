@@ -13,10 +13,12 @@ import Control.Applicative
 import Control.Monad (mzero)
 import Data.Csv
 import Data.Time
-import Data.Vector (Vector)
+import qualified Data.Vector as V
 import Data.Text (Text, foldr)
+import Data.Either
 import GHC.Generics (Generic)
 import System.Environment
+
 
 newtype Price = Price Double deriving (Eq, Show)
 newtype QDay = QDay (Maybe Day) deriving (Eq, Show)
@@ -47,11 +49,11 @@ instance FromField (Price) where
     (Right n) -> pure $ Price n
     _ -> pure $ Price 0
 
--- fileToList :: BL.ByteString -> [Quotation]
-fileToList f =  (map (lineDecoder) . (C.split '\n')) f
+fileToList :: BL.ByteString -> [Quotation]
+fileToList f =  ( map (V.head) . rights . map (lineDecoder) . (C.split '\n')) f
 
-
-lineDecoder l =  decode NoHeader l :: Either String (Vector Quotation)
+lineDecoder :: C.ByteString -> Either String (V.Vector Quotation)
+lineDecoder l =  decode NoHeader l
 
 main :: IO ()
 main = do
