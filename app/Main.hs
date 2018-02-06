@@ -44,8 +44,8 @@ instance FromField (QDay) where
 
 instance FromField (Price) where
   parseField s = case runParser (parseField s :: Parser Double) of
-    (Left _) -> pure $ Price 0
     (Right n) -> pure $ Price n
+    _ -> pure $ Price 0
 
 -- fileToList :: BL.ByteString -> [Quotation]
 fileToList f =  (map (lineDecoder) . (C.split '\n')) f
@@ -58,4 +58,3 @@ main = do
   args <- getArgs
   file <- BL.readFile (head args)
   putStrLn $ show (fileToList file)
-  -- putStrLn "fuck this"
