@@ -14,7 +14,7 @@ import Control.Monad (mzero)
 import Data.Csv
 import Data.Time
 import qualified Data.Vector as V
-import Data.Text (Text, foldr)
+import qualified Data.Text  as T 
 import Data.Either
 import GHC.Generics (Generic)
 import System.Environment
@@ -33,10 +33,14 @@ instance FromRecord Quotation where
 
 -- String laziness is inneficient, but many APIs uses String type
 -- Where is the brigde?
-getDay :: Text -> QDay
+getDay :: T.Text -> QDay
 getDay v = QDay day
-  where textToString = Data.Text.foldr (\a acc -> a : acc) []
+  where textToString = T.foldr (\a acc -> a : acc) []
         day = parseTimeM True defaultTimeLocale "%d/%m/%Y" (textToString v) :: Maybe Day
+
+getQuotationPrice :: Quotation -> Price 
+getQuotationPrice (Quotation _ p) = p
+
 
 instance FromField (QDay) where
   parseField s = case runParser (parseField s) of
@@ -55,8 +59,22 @@ fileToList f =  ( map (V.head) . rights . map (lineDecoder) . (C.split '\n')) f
 lineDecoder :: C.ByteString -> Either String (V.Vector Quotation)
 lineDecoder l =  decode NoHeader l
 
+
+fixPrices :: Price -> [Quotation] -> [Quotation]
+fixPrices _ [] = []
+fixPrices p (h@(Quotation d hp@(Price v)) : t)
+  | v == 0 = (Quotation d p) : fixPrices p t
+  | p /= hp =  h : fixPrices hp t
+  
+prepareFix :: [Quotation] -> [Quotation] 
+prepareFix qs =  fixPrices p qs
+  where p = getQuotationPrice $ head qs
+    
+clean :: BL.ByteString -> [Quotation]
+clean file = (prepareFix . fileToList ) file
+  
 main :: IO ()
 main = do
   args <- getArgs
   file <- BL.readFile (head args)
-  putStrLn $ show (fileToList file)
+  putStrLn $ show (clean file)
