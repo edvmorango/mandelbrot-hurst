@@ -4,7 +4,7 @@
 
 module Main where
 
--- import MHDataTypes
+import MHDataTypes
 import MHLib
 
 import qualified Data.ByteString.Lazy as BL
@@ -39,9 +39,11 @@ getDay v = QDay day
   where textToString = T.foldr (\a acc -> a : acc) []
         day = parseTimeM True defaultTimeLocale "%d/%m/%Y" (textToString v) :: Maybe Day
 
-getQuotationPrice :: Quotation -> Price 
-getQuotationPrice (Quotation _ p) = p
+unliftPrice :: Quotation -> Price 
+unliftPrice (Quotation _ p) = p
 
+unliftValue :: Price -> Double
+unliftValue (Price p) = p
 
 instance FromField (QDay) where
   parseField s = case runParser (parseField s) of
@@ -69,17 +71,21 @@ pricesCleaner p (h@(Quotation d hp@(Price v)) : t)
   
 prepareCleaner :: [Quotation] -> [Quotation] 
 prepareCleaner qs =  pricesCleaner p qs
-  where p = getQuotationPrice $ head qs
+  where p = unliftPrice $ head qs
     
 clean :: BL.ByteString -> [Quotation]
 clean file = (prepareCleaner . fileToList ) file
 
--- applyHurst :: [Quotation] -> Elements
-applyHurst raw = iterations
-  where qs = clean raw
-        elements = (mkElements . map (\(Quotation _ (Price p)) -> p)) qs
+applyHurst ::  BL.ByteString ->  [HurstDataType]
+applyHurst raw = makeHDTs iterations qs 
+  where qs = (map (unliftValue . unliftPrice) . clean) raw
         nElements =  (fromInteger . toInteger . length) qs
         iterations = floor $ logBase (2) nElements
+
+
+makeHDTs :: (Integral a) => a -> [Double] -> [HurstDataType]
+makeHDTs i els = map (\x -> mkHDT (mkElements (take x els))) ranges
+  where ranges = map (fromIntegral . (2^) ) [1..i] 
           
           
 main :: IO ()
