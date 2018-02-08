@@ -4,6 +4,7 @@
 
 module Main where
 
+-- import MHDataTypes
 import MHLib
 
 import qualified Data.ByteString.Lazy as BL
@@ -60,21 +61,29 @@ lineDecoder :: C.ByteString -> Either String (V.Vector Quotation)
 lineDecoder l =  decode NoHeader l
 
 
-fixPrices :: Price -> [Quotation] -> [Quotation]
-fixPrices _ [] = []
-fixPrices p (h@(Quotation d hp@(Price v)) : t)
-  | v == 0 = (Quotation d p) : fixPrices p t
-  | p /= hp =  h : fixPrices hp t
+pricesCleaner :: Price -> [Quotation] -> [Quotation]
+pricesCleaner _ [] = []
+pricesCleaner p (h@(Quotation d hp@(Price v)) : t)
+  | v == 0 = (Quotation d p) : pricesCleaner p t
+  | otherwise =  h : pricesCleaner hp t
   
-prepareFix :: [Quotation] -> [Quotation] 
-prepareFix qs =  fixPrices p qs
+prepareCleaner :: [Quotation] -> [Quotation] 
+prepareCleaner qs =  pricesCleaner p qs
   where p = getQuotationPrice $ head qs
     
 clean :: BL.ByteString -> [Quotation]
-clean file = (prepareFix . fileToList ) file
-  
+clean file = (prepareCleaner . fileToList ) file
+
+-- applyHurst :: [Quotation] -> Elements
+applyHurst raw = iterations
+  where qs = clean raw
+        elements = (mkElements . map (\(Quotation _ (Price p)) -> p)) qs
+        nElements =  (fromInteger . toInteger . length) qs
+        iterations = floor $ logBase (2) nElements
+          
+          
 main :: IO ()
 main = do
   args <- getArgs
   file <- BL.readFile (head args)
-  putStrLn $ show (clean file)
+  putStrLn $ show (applyHurst file)
