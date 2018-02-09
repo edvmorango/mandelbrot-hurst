@@ -31,4 +31,4 @@ instance Monoid Elements where
 
 instance Show HurstDataType where
   show (HDT (Elements _ l _) _ _ (Point (x,y)) ) =
-     "HDT (Elements " ++ (show l) ++ ") (Point ("++(show x)++"," ++ (show y)++ "))"
+     "HDT (Elements " ++ (show l) ++ ") (Point ("++(show x)++", " ++ (show y)++ "))"

@@ -40,7 +40,7 @@ mkHDT es@(Elements _ l _ ) = HDT es tr dv pt
         pt = hdtCalcPoint tr dv l
 
 hdtCalcPoint :: TresholdRange -> Deviation -> LengthElems -> Point
-hdtCalcPoint  r s l = Point (rs, n)
+hdtCalcPoint  r s l = Point (n, rs)
   where log2 = logBase 2
         rs =  log2 $ r / s
         n =  (log2 . fromIntegral) l
