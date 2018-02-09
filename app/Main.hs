@@ -17,8 +17,16 @@ import Data.Time
 import qualified Data.Vector as V
 import qualified Data.Text  as T 
 import Data.Either
+import Data.Maybe
 import GHC.Generics (Generic)
 import System.Environment
+
+-------------------Graphics--------------------
+import qualified Graphics.Rendering.Chart.Easy as GE
+import qualified Graphics.Rendering.Chart.Backend.Cairo as CA
+import Data.Time.LocalTime
+-----------------------------------------------
+
 
 
 newtype Price = Price Double deriving (Eq, Show)
@@ -44,6 +52,10 @@ unliftPrice (Quotation _ p) = p
 
 unliftValue :: Price -> Double
 unliftValue (Price p) = p
+
+unliftDay :: QDay -> Day
+unliftDay (QDay d) = fromJust d
+
 
 instance FromField (QDay) where
   parseField s = case runParser (parseField s) of
@@ -86,7 +98,17 @@ applyHurst raw = makeHDTs iterations qs
 makeHDTs :: (Integral a) => a -> [Double] -> [HurstDataType]
 makeHDTs i els = map (\x -> mkHDT (mkElements (take x els))) ranges
   where ranges = map (fromIntegral . (2^) ) [1..i] 
-          
+-------------------- Graphics should be moved ---------------
+
+-- quotationChart :: [Quotation] -> IO ()
+quotationChart qts = CA.toFile GE.def "quotation_chart.png" $ do
+  GE.layoutlr_title GE..= "Quotation"
+  -- (GE.layoutlr_left_axis . GE.laxis_override) GE..= GE.axisGridHide
+  -- (GE.layoutlr_right_axis . GE.laxis_override) GE..= GE.axisGridHide
+  -- plotRight (line "price 2" [ [ (d,v) | (d,_,v) <- ([1..10],[1..10],[1..10]) ] ])
+
+
+-------------------------------------------------------------
           
 main :: IO ()
 main = do

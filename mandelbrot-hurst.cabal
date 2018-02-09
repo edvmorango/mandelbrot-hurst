@@ -16,6 +16,8 @@ library
                       , text
                       , cassava
                       , random
+                      , Chart
+                      , Chart-cairo
                       , QuickCheck
                       , hspec
   hs-source-dirs:       src
@@ -34,7 +36,8 @@ executable mh
                      , vector
                      , random
                      , mandelbrot-hurst
-
+                     , Chart
+                     , Chart-cairo
 test-suite tests
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
