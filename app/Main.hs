@@ -21,13 +21,6 @@ import Data.Maybe
 import GHC.Generics (Generic)
 import System.Environment
 
--------------------Graphics--------------------
-import qualified Graphics.Rendering.Chart.Easy as GE
-import qualified Graphics.Rendering.Chart.Backend.Cairo as CA
-import Data.Time.LocalTime
------------------------------------------------
-
-
 
 newtype Price = Price Double deriving (Eq, Show)
 newtype QDay = QDay (Maybe Day) deriving (Eq, Show)
@@ -101,8 +94,8 @@ makeHDTs i els = map (\x -> mkHDT (mkElements (take x els))) ranges
 -------------------- Graphics should be moved ---------------
 
 -- quotationChart :: [Quotation] -> IO ()
-quotationChart qts = CA.toFile GE.def "quotation_chart.png" $ do
-  GE.layoutlr_title GE..= "Quotation"
+-- quotationChart = CA.toFile GE.def "quotation_chart.png" $ do
+  -- GE.layoutlr_title .= "Quotation"
   -- (GE.layoutlr_left_axis . GE.laxis_override) GE..= GE.axisGridHide
   -- (GE.layoutlr_right_axis . GE.laxis_override) GE..= GE.axisGridHide
   -- plotRight (line "price 2" [ [ (d,v) | (d,_,v) <- ([1..10],[1..10],[1..10]) ] ])
