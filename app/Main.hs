@@ -6,6 +6,7 @@ module Main where
 
 import MHDataTypes
 import MHLib
+import MHCharts
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as C
@@ -107,4 +108,11 @@ main :: IO ()
 main = do
   args <- getArgs
   file <- BL.readFile (head args)
-  putStrLn $ show (applyHurst file)
+  let hType = applyHurst file in
+    -- putStrLn $ show (hType)
+    applyGraphicPoints hType
+  
+  
+  
+  
+  
